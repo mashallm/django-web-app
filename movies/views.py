@@ -20,10 +20,37 @@ def create(request):
     if request.method == 'POST':
         data = {
             'Name': request.POST.get('name'),
-            'Pictures': [{'url': request.POST.get('url')}],
+            'Pictures': [{'url': request.POST.get('url') or 'https://upload.wikimedia.org/wikipedia/en/f/f9/No-image-available.jpg'}],
             'Rating': int(request.POST.get('rating')),
             'Notes': request.POST.get('notes')
         }
+        try:
+            response= AT.insert(data)
+            messages.success(request, 'New movie added: {}'.format(response['fields'].get('Name')))
+        except Exception as e:
+            messages.warning(request, 'Error when adding a movie {}'.format(e))
+    return redirect('/')
 
-        AT.insert(data)
+def edit(request, movie_id):
+    if request.method == 'POST':
+        data ={
+            'Name': request.POST.get('name'),
+            'Pictures': [{'url': request.POST.get('url') or 'https://upload.wikimedia.org/wikipedia/en/f/f9/No-image-available.jpg'}],
+            'Rating': int(request.POST.get('rating')),
+            'Notes': request.POST.get('notes'),
+        }
+        try:
+            response= AT.update(movie_id, data)
+            messages.success(request, 'Movie Updated: {}'.format(response['fields'].get('Name')))
+        except Exception as e:
+            message.warning(request, 'Got an error when trying to update a movie:{}'.format(e))
+    return redirect('/')
+
+def delete(request, movie_id):
+    try:
+        movie_name= AT.get(movie_id)['fields'].get('Name')
+        response= AT.delete(movie_id)
+        messages.warning(request, 'Movie Deleted: {}'.format(movie_name))
+    except Exception as e:
+        messages.warning(request, 'got this error when trying to delete a movie: {}'.format(e))
     return redirect('/')
